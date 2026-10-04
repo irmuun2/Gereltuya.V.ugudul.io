@@ -1,0 +1,709 @@
+<!doctype html>
+<html lang="mn">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Өгөгдөлтэй ажиллах</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=PT+Serif:ital,wght@0,400;0,700;1,400&family=PT+Mono&display=swap">
+<style>
+:root{
+  --paper:#f3efe4; --paper2:#e8e2d1; --card:#fbf9f3; --ink:#161616; --ink2:#333; --muted:#5a564c; --rule:#1a1a1a; --line:#c9c1ad;
+  --red:#c8102e; --red-d:#940b21; --red-soft:#f9e1e1; --grn:#1d7a3a; --grn-soft:#e0f0e2; --yel:#f2cf5b;
+  --shadow:0 8px 22px rgba(0,0,0,.18);
+  --mast:"Playfair Display",Georgia,serif; --body:"PT Serif",Georgia,serif; --type:"PT Mono","Courier New",monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{color:var(--ink);font-family:var(--body);font-size:20px;line-height:1.4;overflow:hidden;background-color:var(--paper);
+  background-image:radial-gradient(rgba(0,0,0,.035) 1px,transparent 1.2px),linear-gradient(90deg,transparent 49.6%,rgba(0,0,0,.05) 50%,transparent 50.4%);background-size:6px 6px,100% 100%}
+button{font:inherit;cursor:pointer}
+input,textarea{font:inherit}
+
+/* ===== Header ===== */
+.top{position:fixed;inset:0 0 auto 0;height:64px;display:grid;grid-template-columns:auto 1fr auto;align-items:stretch;z-index:20;background:var(--ink);color:var(--paper);border-bottom:5px double var(--red)}
+.tb{display:flex;align-items:center;gap:10px;padding:0 16px;border-right:1px solid rgba(255,255,255,.25)}
+.tb:last-child{border-right:none;border-left:1px solid rgba(255,255,255,.25)}
+.tb .lbl{font-family:var(--type);font-size:12px;letter-spacing:1px;text-transform:uppercase;color:#bdb6a6;display:block}
+.tb .val{font-family:var(--mast);font-weight:900;font-size:21px;white-space:nowrap}
+.tb.mid{min-width:0;overflow:hidden}.tb.mid .val{overflow:hidden;text-overflow:ellipsis;display:block}
+.desks{display:flex;gap:5px}
+.desks span{font-family:var(--type);font-size:13px;padding:3px 7px;border:1px solid rgba(255,255,255,.4);color:#cfc8b8;white-space:nowrap}
+.desks span.on{background:var(--red);border-color:var(--red);color:#fff}
+.timer{font-family:var(--type);font-size:24px;color:var(--paper);cursor:pointer}
+.timer.warn{color:var(--yel)}.timer.over{color:#ff8a8a}
+.tbtn{border:1px solid rgba(255,255,255,.45);background:transparent;padding:4px 10px;font-weight:700;font-size:15px;color:#fff}
+.tbtn:hover{border-color:var(--red);color:#ffb3b3}
+
+/* ===== Slides ===== */
+.deck{position:absolute;inset:76px 0 72px 0;z-index:1}
+.slide{position:absolute;inset:0;overflow:hidden;padding:8px clamp(16px,3.4vw,48px) 12px;opacity:0;visibility:hidden;transform:translateY(16px);transition:opacity .35s,transform .35s,visibility .35s}
+.slide.active{opacity:1;visibility:visible;transform:none}
+.inner{max-width:1280px;margin:0 auto;height:100%;display:flex;flex-direction:column}
+h2{font-family:var(--mast);font-weight:900;font-size:clamp(28px,3vw,40px);line-height:1.1;margin:0;display:flex;align-items:center;gap:12px}
+.kicker{font-family:var(--type);font-size:15px;color:var(--red);letter-spacing:2px;text-transform:uppercase}
+.hd{border-bottom:3px double var(--rule);padding-bottom:4px;margin-bottom:10px}
+.sub{color:var(--muted);margin:2px 0 0;font-size:18px;font-style:italic}
+.card{background:var(--card);border:1.5px solid var(--rule);box-shadow:4px 4px 0 rgba(0,0,0,.18);padding:12px 16px;position:relative}
+.card h3{font-family:var(--mast);font-size:22px;margin:0 0 6px;border-bottom:1px solid var(--rule);padding-bottom:3px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px;min-height:0;flex:1}
+.g64{grid-template-columns:1.25fr 1fr}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.btn{border:1.5px solid var(--ink);padding:8px 16px;font-weight:700;background:var(--ink);color:var(--paper);box-shadow:3px 3px 0 var(--red);transition:transform .1s}
+.btn:hover{transform:translate(-1px,-1px);box-shadow:4px 4px 0 var(--red)}
+.btn:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--red)}
+.btn.ghost{background:var(--card);color:var(--ink);box-shadow:3px 3px 0 rgba(0,0,0,.25)}
+.btn.ghost.on{background:var(--red);border-color:var(--red);color:#fff}
+.btn.red{background:var(--red);border-color:var(--red-d);box-shadow:3px 3px 0 var(--ink)}
+.btn.sm{padding:5px 11px;font-size:16px}
+.feedback{font-size:19px;font-weight:700;min-height:26px;margin-top:6px}
+.feedback.ok{color:var(--grn)}.feedback.no{color:var(--red)}
+.tw{font-family:var(--type)}
+.lvl{font-family:var(--type);font-size:14px;background:var(--ink);color:var(--paper);padding:1px 6px;margin-right:4px;white-space:nowrap}
+.lvl.e{background:var(--grn)}.lvl.h{background:var(--red)}
+.num{width:90px;border:none;border-bottom:2px solid var(--ink);background:#fff;text-align:center;font-family:var(--type);font-size:20px;padding:2px 4px}
+.num.ok{background:var(--grn-soft);border-color:var(--grn)}.num.no{background:var(--red-soft);border-color:var(--red)}
+
+/* ===== Nav ===== */
+.nav{position:fixed;inset:auto 0 0 0;height:66px;display:flex;align-items:center;justify-content:space-between;padding:0 18px;z-index:20;gap:10px;background:var(--ink);border-top:5px double var(--red)}
+.nav .btn{background:var(--paper);color:var(--ink);border-color:var(--paper)}
+.dots{display:flex;gap:6px;flex-wrap:wrap;justify-content:center}
+.dot{min-width:40px;height:32px;border:1px solid rgba(255,255,255,.45);background:transparent;color:#cfc8b8;font-family:var(--type);font-size:14px}
+.dot.on{background:var(--red);border-color:var(--red);color:#fff}
+.dot.done{background:rgba(255,255,255,.14);color:#fff}
+.tnotes{position:fixed;right:18px;bottom:78px;width:min(440px,calc(100vw - 36px));background:#fffdf3;border:2px solid var(--ink);box-shadow:5px 5px 0 var(--red);padding:12px 16px;font-size:16px;z-index:25;display:none;max-height:calc(100vh - 170px);overflow:auto}
+.tnotes.show{display:block}
+.tnotes h4{margin:0 0 6px;font-size:17px;font-family:var(--mast)}
+.tnotes ul{margin:0;padding-left:20px}
+#confetti{position:fixed;inset:0;pointer-events:none;z-index:50}
+
+/* ===== Intro: front page ===== */
+.front{max-width:1000px;width:100%;margin:auto;background:var(--card);border:2px solid var(--ink);box-shadow:10px 10px 0 rgba(0,0,0,.2);padding:18px 30px 16px;position:relative}
+.front .ear{display:flex;justify-content:space-between;font-family:var(--type);font-size:16px;border-bottom:1px solid var(--ink);padding-bottom:4px}
+.front .mast{font-family:var(--mast);font-weight:900;font-size:clamp(54px,7.4vw,96px);text-align:center;line-height:1;margin:8px 0 2px;letter-spacing:1px}
+.front .tag{text-align:center;font-style:italic;color:var(--muted);border-bottom:4px double var(--ink);padding-bottom:6px}
+.front .banner{display:grid;grid-template-columns:1.4fr 1fr;gap:22px;margin-top:12px}
+.front .subj{font-family:var(--type);color:var(--red);letter-spacing:3px;font-size:20px}
+.front .topic{font-family:var(--mast);font-weight:900;font-size:clamp(40px,5vw,64px);line-height:1.02;margin:4px 0 8px}
+.front .lede{font-size:19px;columns:2;column-gap:20px;column-rule:1px solid var(--line);text-align:justify}
+.front .by{border-left:1px solid var(--ink);padding-left:18px;display:flex;flex-direction:column;gap:10px;justify-content:center}
+.front .by div{font-size:22px;font-weight:700;border-bottom:1px dotted var(--ink);padding-bottom:6px}
+.front .by small{display:block;font-family:var(--type);font-size:13px;color:var(--muted);font-weight:400;letter-spacing:1px}
+.stamp{position:absolute;font-family:var(--type);color:var(--red);border:3px solid var(--red);padding:4px 12px;font-size:22px;transform:rotate(-9deg);letter-spacing:2px;opacity:.85}
+
+/* ===== Editor letter ===== */
+.memo{background:#fffef8;border:1.5px solid var(--ink);padding:14px 20px;font-family:var(--type);font-size:18px;line-height:1.5;box-shadow:4px 4px 0 rgba(0,0,0,.18);position:relative;min-height:220px}
+.memo .caret{display:inline-block;width:10px;background:var(--ink);animation:blink 1s steps(1) infinite;height:1em;vertical-align:-2px}
+@keyframes blink{50%{opacity:0}}
+.pipe{display:flex;gap:6px;margin-top:10px}
+.pipe div{flex:1;border:1.5px solid var(--ink);background:var(--card);padding:6px 8px;text-align:center;font-weight:700;font-size:17px;position:relative}
+.pipe div b{display:block;font-family:var(--type);color:var(--red);font-size:14px}
+.qs{display:flex;flex-direction:column;gap:7px}
+.qcard{display:flex;align-items:center;gap:10px;background:var(--card);border:1.5px solid var(--ink);padding:6px 10px;position:relative}
+.qcard .t{flex:1;font-size:18px}
+.qcard .mk{position:absolute;right:150px;top:50%;transform:translateY(-50%) rotate(-8deg);font-family:var(--type);font-size:17px;border:2px solid;padding:0 6px;background:rgba(255,255,255,.85)}
+
+/* ===== Survey ===== */
+.qpick{font-family:var(--mast);font-size:28px;font-weight:900;text-align:center;margin:2px 0 8px}
+.vote{display:grid;grid-template-columns:240px 1fr;gap:10px;align-items:center;margin:7px 0}
+.vbtn{display:flex;align-items:center;gap:10px;border:2px solid var(--ink);background:var(--card);padding:8px 12px;font-size:22px;font-weight:700;box-shadow:3px 3px 0 var(--ink);text-align:left}
+.vbtn span{font-size:32px}
+.vbtn:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--ink)}
+.tally{height:58px;background:repeating-linear-gradient(transparent 0 27px,rgba(0,0,0,.12) 27px 28px);border-bottom:1px solid var(--line);display:flex;align-items:center;overflow:hidden}
+.tally svg{height:52px;width:auto;display:block}
+.tl{stroke:var(--ink);stroke-width:4;stroke-linecap:round}
+.tl.x{stroke:var(--red)}
+.tl.nw{stroke-dasharray:1;stroke-dashoffset:1;animation:draw .45s forwards}
+@keyframes draw{to{stroke-dashoffset:0}}
+.counter{font-family:var(--type);font-size:20px}
+
+/* ===== Freq table ===== */
+table.news{border-collapse:collapse;width:100%;background:var(--card)}
+table.news th{background:var(--ink);color:var(--paper);font-family:var(--mast);padding:5px 8px;text-align:left;font-size:19px}
+table.news td{border-bottom:1px solid var(--line);padding:4px 8px;font-size:19px;vertical-align:middle}
+table.news tr.tot td{border-top:2px solid var(--ink);font-weight:700}
+table.news .tsm svg{height:34px;width:auto;display:block}
+table.ls td,table.ls th{text-align:center;padding:3px 6px;font-family:var(--type);font-size:18px;cursor:pointer}
+table.ls td:first-child,table.ls th:first-child{text-align:left;font-family:var(--body);font-weight:700}
+table.ls td.hl{background:var(--yel)}
+table.ls th.hl{background:var(--red)}
+.qlist{display:flex;flex-direction:column;gap:6px}
+.qi{background:var(--card);border-left:4px solid var(--ink);padding:5px 10px;font-size:18px}
+.qi .row{margin-top:3px}
+.qi.done{border-left-color:var(--grn);background:var(--grn-soft)}
+.chart svg{width:100%;height:auto;display:block;max-height:calc(100vh - 330px);background:var(--card);border:1.5px solid var(--ink);touch-action:none}
+.ch{cursor:ns-resize}
+
+/* ===== Pictograph ===== */
+.pic{display:grid;grid-template-columns:110px 60px 1fr auto;gap:6px 10px;align-items:center}
+.pic .nm{font-weight:700}
+.pic .hr{font-family:var(--type)}
+.pic svg{height:44px;width:auto;display:block}
+.pic .pm button{width:40px;height:36px;border:1.5px solid var(--ink);background:var(--card);font-weight:700;font-size:20px}
+.pic .ok svg circle.o{stroke:var(--grn)}
+.key{display:flex;align-items:center;gap:8px;font-family:var(--type);font-size:18px;border:1.5px dashed var(--ink);padding:4px 10px;background:var(--card)}
+
+/* ===== Livestock grid ===== */
+.hundred{display:grid;grid-template-columns:repeat(10,1fr);gap:2px;width:min(240px,100%);aspect-ratio:1;background:var(--ink);padding:2px}
+.hundred i{display:block;background:#fff}
+.legend{display:flex;flex-direction:column;gap:3px;font-size:17px}
+.legend span{display:inline-block;width:18px;height:18px;border:1px solid var(--ink);vertical-align:-3px;margin-right:6px}
+
+/* ===== Fact check ===== */
+.facts{display:grid;grid-template-columns:1fr 1fr;gap:10px;flex:1;min-height:0}
+.fact{background:var(--card);border:1.5px solid var(--ink);padding:8px 12px;position:relative;display:flex;flex-direction:column;justify-content:space-between;overflow:hidden}
+.fact .hl{font-family:var(--mast);font-weight:900;font-size:21px;line-height:1.15}
+.fact .src{font-family:var(--type);font-size:14px;color:var(--muted)}
+.fact .row{justify-content:flex-end}
+.fact .st{position:absolute;right:18px;top:16px;font-family:var(--type);font-size:28px;border:3px solid;padding:0 10px;transform:rotate(-12deg) scale(1.6);opacity:0;transition:.25s;background:rgba(255,255,255,.8);pointer-events:none}
+.fact .st.show{opacity:.95;transform:rotate(-12deg) scale(1)}
+.fact.wrong{background:var(--red-soft)}
+.factfb{font-size:18px;min-height:28px;margin-top:6px;padding:4px 10px;border-left:4px solid var(--red);background:var(--card)}
+
+/* ===== Article ===== */
+.form label{display:block;font-family:var(--type);font-size:15px;color:var(--muted);margin-top:6px}
+.form input[type=text]{width:100%;border:none;border-bottom:2px solid var(--ink);background:#fff;padding:4px 8px;font-size:19px}
+.chk{list-style:none;padding:0;margin:6px 0 0;font-size:17px}
+.chk li{padding:1px 0}
+.chk li b{display:inline-block;width:26px;color:var(--red);font-family:var(--type)}
+.paper{background:#fffdf6;border:2px solid var(--ink);box-shadow:8px 8px 0 rgba(0,0,0,.2);padding:10px 16px;height:100%;overflow:hidden;display:flex;flex-direction:column}
+.paper .m{font-family:var(--mast);font-weight:900;font-size:40px;text-align:center;line-height:1;border-bottom:4px double var(--ink);padding-bottom:4px}
+.paper .dl{display:flex;justify-content:space-between;font-family:var(--type);font-size:13px;border-bottom:1px solid var(--ink);padding:2px 0;margin-bottom:6px}
+.paper .h{font-family:var(--mast);font-weight:900;font-size:30px;line-height:1.08;margin:2px 0 6px;min-height:34px}
+.paper .h.ph,.paper .a .ph{color:#b5ad9a}
+.paper .body{display:grid;grid-template-columns:1fr 1fr;gap:14px;flex:1;min-height:0}
+.paper .a{font-size:18px;text-align:justify;column-rule:1px solid var(--line)}
+.paper .a::first-letter{font-family:var(--mast);font-size:46px;float:left;line-height:.9;margin:3px 6px 0 0;font-weight:900}
+.paper .byl{font-family:var(--type);font-size:14px;margin-top:6px;color:var(--muted)}
+.paper svg{width:100%;height:auto;max-height:calc(100vh - 470px);display:block}
+
+/* ===== Exit ===== */
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.chip{border:2px solid var(--ink);background:var(--card);padding:6px 12px;font-family:var(--type);font-size:19px;box-shadow:2px 2px 0 var(--ink)}
+.chip.on{background:var(--ink);color:var(--paper);box-shadow:2px 2px 0 var(--red)}
+.hw{list-style:none;padding:0;margin:0}
+.hw li{padding:6px 0 6px 34px;border-bottom:1px dotted var(--ink);position:relative;font-size:18px}
+.hw li::before{content:"✎";position:absolute;left:4px;color:var(--red);font-size:22px;top:2px}
+.stars3{display:flex;gap:10px}
+.stars3 button{font-size:36px;border:none;background:none;filter:grayscale(1);opacity:.4;transition:.2s}
+.stars3 button.on{filter:none;opacity:1;transform:scale(1.1)}
+
+@media (max-height:900px){
+  body{font-size:18px}
+  h2{font-size:28px}
+  .sub{font-size:16px}
+  .hd{margin-bottom:6px}
+  .card{padding:8px 12px}
+  .card h3{font-size:19px}
+  .memo{font-size:16px;padding:10px 14px;min-height:180px}
+  .qcard{padding:4px 8px}.qcard .t{font-size:17px}
+  .pipe div{font-size:15px;padding:4px}
+  .qpick{font-size:24px;margin-bottom:4px}
+  .vote{margin:4px 0;grid-template-columns:220px 1fr}
+  .vbtn{font-size:19px;padding:5px 10px}.vbtn span{font-size:26px}
+  .tally{height:48px}.tally svg{height:44px}
+  table.news th{font-size:17px;padding:3px 6px}table.news td{font-size:17px;padding:2px 6px}
+  table.news .tsm svg{height:28px}
+  table.ls td,table.ls th{font-size:16px;padding:2px 5px}
+  .qi{font-size:16px;padding:3px 8px}
+  .num{font-size:18px;width:80px}
+  .pic svg{height:36px}
+  .fact .hl{font-size:18px}
+  .fact{padding:6px 10px}
+  .paper .m{font-size:32px}.paper .h{font-size:24px}.paper .a{font-size:16px}
+  .front .mast{font-size:64px}.front .topic{font-size:44px}.front .lede{font-size:17px}.front .by div{font-size:19px}
+  .hw li{font-size:16px;padding:4px 0 4px 30px}
+  .chip{font-size:17px;padding:4px 10px}
+  .btn{padding:6px 13px}
+  .feedback{font-size:17px}
+}
+@media (max-width:1000px){
+  .desks{display:none}
+  .grid2,.facts,.front .banner{grid-template-columns:1fr !important}
+  .dots{display:none}
+  .slide{overflow:auto}
+  .front .lede{columns:1}
+}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="tb"><span><span class="lbl">Математик · 5-р анги</span><span class="val">📰 Ангийн сонин</span></span></div>
+  <div class="tb mid"><span style="min-width:0;display:block"><span class="lbl">Редакцийн ширээ · <span id="sheetNo">Нүүр 1/10</span></span><span class="val" id="stageName"></span></span></div>
+  <div class="tb">
+    <div class="desks" title="Ажилласан ширээнүүд"><span id="dk1">Санал</span><span id="dk2">Хүснэгт</span><span id="dk3">Мэдээ</span><span id="dk4">Баримт</span><span id="dk5">Нийтлэл</span></div>
+    <div class="timer" id="timer" title="Хичээлийн үлдсэн хугацаа (2 удаа дарвал 40:00 болно)">⏱ <span id="tval">40:00</span></div>
+    <button class="tbtn" id="tPlay">▶</button>
+    <button class="tbtn" id="notesBtn" title="Багшийн тэмдэглэл (N)">📝</button>
+    <button class="tbtn" id="fsBtn" title="Бүтэн дэлгэц (F)">⛶</button>
+  </div>
+</header>
+
+<main class="deck">
+
+<!-- 1. Intro -->
+<section class="slide" data-name="Нүүр хуудас" data-min="1"
+  data-notes="Мэндчилж, өнөөдөр анги бүхэлдээ «Ангийн сонин»-ы редакц болж, хүүхдүүд сурвалжлагч болно гэж зарлана.|Сурвалжлагч мэдээгээ таамгаар биш, ӨГӨГДӨЛ (тоо баримт) дээр үндэслэн бичдэг гэдгийг онцол.|Сурах бичиг: 4-р бүлэг, «Өгөгдөлтэй ажиллах», х.130–132.|Дээд талын ▶ товчоор 40 минутын цагийг эхлүүлнэ.">
+  <div class="inner" style="justify-content:center">
+    <div class="front">
+      <div class="ear"><span>🏫 1-р сургууль</span><span id="todayStr">Дугаар №1</span><span>Үнэ: 1 инээмсэглэл</span></div>
+      <div class="mast">Ангийн Сонин</div>
+      <div class="tag">«Тоо баримт худал хэлдэггүй» — 5-р ангийн сурвалжлагчдын сонин</div>
+      <div class="banner">
+        <div>
+          <div class="subj">МАТЕМАТИК · ОНЦЛОХ МЭДЭЭ</div>
+          <div class="topic">Өгөгдөлтэй ажиллах</div>
+          <div class="lede">Өнөөдөр манай редакц шинэ сурвалжлагчдыг ажилд авлаа. Тэд санал асуулга явуулж, зураасаар тоолж, хүснэгт зохиож, хүснэгтээс уншиж сурна. Хамгийн гол нь — тоо баримтад тулгуурласан үнэн мэдээ бичнэ!</div>
+        </div>
+        <div class="by">
+          <div><small>СУРГУУЛЬ</small>🏫 1-р сургууль</div>
+          <div><small>ХИЧЭЭЛ</small>📐 Математик</div>
+          <div><small>ЕРӨНХИЙ РЕДАКТОР</small>👩‍🏫 Багш: В. Гэрэлтуяа</div>
+          <div><small>СУРВАЛЖЛАГЧИД</small>5-р анги</div>
+        </div>
+      </div>
+      <div class="stamp" style="right:24px;top:96px">ШИНЭ ДУГААР</div>
+    </div>
+  </div>
+</section>
+
+<!-- 2. Editor's assignment -->
+<section class="slide" data-name="Редакторын даалгавар" data-min="3"
+  data-notes="Редакторын захидлыг (бичгийн машинаар бичигдэнэ) нэг хүүхдээр чангаар уншуул.|Асуулт: «Ямар асуултад ТОО баримт цуглуулж хариулж болох вэ?» — карт бүр дээр сурагчдаар шийдүүлнэ.|Хариу: 1 ✓, 2 ✓ (х.130 жишээ), 3 ✗ (нэг л хариулттай), 4 ✓ (х.132 №663), 5 ✗ (бодол, тоолох боломжгүй), 6 ✓ (х.131 №658).|4 алхам нь сурах бичгийн х.130-ын бодолтын а, б үе шаттай таарна: цуглуулах → ангилах/хүснэгт → тооцоолох → дүгнэлт.">
+  <div class="inner">
+    <div class="hd"><div class="kicker">Ширээ №0 · Захидал</div><h2>📨 Ерөнхий редакторын даалгавар</h2></div>
+    <div class="grid2">
+      <div>
+        <div class="memo" id="memo"></div>
+        <div class="pipe">
+          <div><b>1-р алхам</b>❓ Асуулт</div>
+          <div><b>2-р алхам</b>🗳️ Цуглуулах</div>
+          <div><b>3-р алхам</b>📋 Хүснэгт</div>
+          <div><b>4-р алхам</b>📰 Дүгнэлт</div>
+        </div>
+      </div>
+      <div>
+        <div class="card"><h3>Аль асуултыг тоо баримтаар судалж болох вэ?</h3>
+          <div class="qs" id="qs"></div>
+          <div class="feedback" id="qsFb"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 3. Live survey -->
+<section class="slide" data-name="Шууд санал асуулга" data-min="6"
+  data-notes="Сэдвээ сонгоно (улирал / спорт / амьтан). Сурагч бүр самбарт гарч ӨӨРИЙН нэг санал дээр дарна — ингэхэд зураас (|) нэмэгдэнэ.|Тав дахь зураас бүр УЛААН хөндлөн зураас болно: |||| + / = 5. Яагаад 5-аар багцалдаг вэ? — Тоолоход хурдан.|Буруу дарвал «↶ Буцаах». Тоо нь энд нуугдмал — дараагийн хуудсанд сурагчид өөрсдөө тоолж шалгана.|Санал бүх сурагчаас авсны дараа «Нийт санал» = ангийн сурагчдын тоо эсэхийг шалгуул.">
+  <div class="inner">
+    <div class="hd row" style="justify-content:space-between"><div><div class="kicker">Ширээ №1 · Сурвалжлага</div><h2>🗳️ Шууд санал асуулга</h2></div>
+      <div class="row" id="topicBtns"></div></div>
+    <div class="qpick" id="sQ"></div>
+    <div id="voteRows" style="flex:1;min-height:0"></div>
+    <div class="row" style="justify-content:space-between;border-top:1px solid var(--ink);padding-top:6px">
+      <div class="counter">🧾 Нийт санал: <b id="sTot">0</b></div>
+      <div class="row"><button class="btn ghost sm" id="sUndo">↶ Буцаах</button><button class="btn ghost sm" id="sReset">🗑 Шинээр эхлэх</button></div>
+    </div>
+  </div>
+</section>
+
+<!-- 4. Frequency table -->
+<section class="slide" data-name="Давтамжийн хүснэгт" data-min="5"
+  data-notes="Зураасыг 5-аар тоолоод (5, 10, 15 …) давтамжийг хүснэгтэд бичүүлнэ. Нийт = бүх давтамжийн нийлбэр = санал өгсөн хүүхдийн тоо.|Хэрэв санал асуулга хийгээгүй бол «Жишээ өгөгдөл» товчийг дарна (6, 11, 5, 8 → нийт 30).|Дараа нь «Хамгийн олон санал авсан нь» гэдгийг сонгоно — энэ бол манай сонины гол мэдээ!|⭐ Дасгал: зүүн доод «Зураас тоол» — санамсаргүй зураасыг тоолох. Сул сурагчдад тохиромжтой.">
+  <div class="inner">
+    <div class="hd"><div class="kicker">Ширээ №2 · Хүснэгт</div><h2>📋 Зураасаас давтамжийн хүснэгт</h2><p class="sub">Зураасаа тоолоод, давтамж (хэдэн удаа)-ыг бичээрэй.</p></div>
+    <div class="grid2 g64">
+      <div>
+        <table class="news" id="fTab"></table>
+        <div class="row" style="margin-top:8px"><button class="btn red" id="fChk">✓ Шалгах</button><button class="btn ghost sm" id="fSample">📎 Жишээ өгөгдөл</button></div>
+        <div class="feedback" id="fFb"></div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div class="card"><h3>📰 Гол мэдээ: хамгийн олон санал авсан нь…</h3><div class="row" id="fTop"></div><div class="feedback" id="fTopFb"></div></div>
+        <div class="card"><h3><span class="lvl e">⭐</span> Зураас тоол</h3>
+          <div class="tally" id="pTal" style="height:52px"></div>
+          <div class="row" style="margin-top:4px">= <input class="num" id="pIn" inputmode="numeric"> <button class="btn sm" id="pChk">✓</button><button class="btn ghost sm" id="pNew">🔄 Шинэ</button></div>
+          <div class="feedback" id="pFb"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 5. Data desk: class sizes -->
+<section class="slide" data-name="Мэдээллийн ширээ: Бүлгүүд" data-min="4"
+  data-notes="Сурах бичиг х.130 «Жишээ»: 5-р ангийн 6 бүлгийн сурагчдын тоо: 24, 27, 35, 27, 29, 32.|Эхлээд хүүхдүүд баганыг ДЭЭШ/ДООШ чирж диаграммыг хүснэгттэй тааруулна (1 хүүхэд = 1 нэгж).|Хариу: хамгийн олон 5в (35), хамгийн цөөн 5а (24), далайц 35 − 24 = 11, нийт 174, дундаж 174 : 6 = 29.|Ярилцах (х.130): «Дундаж 29 гэдэг юуг илэрхийлэх вэ?» — Бүлгүүдийг тэнцүүлбэл бүлэг бүрт 29 хүүхэд ногдоно.">
+  <div class="inner">
+    <div class="hd"><div class="kicker">Ширээ №3 · Сурах бичиг х.130</div><h2>🏫 «5-р ангийн нэг бүлэгт дунджаар хэдэн хүүхэд вэ?»</h2></div>
+    <div class="grid2">
+      <div>
+        <table class="news" style="margin-bottom:6px"><tr><th>Бүлэг</th><th>5а</th><th>5б</th><th>5в</th><th>5г</th><th>5д</th><th>5е</th></tr>
+          <tr><td><b>Сурагч</b></td><td>24</td><td>27</td><td>35</td><td>27</td><td>29</td><td>32</td></tr></table>
+        <div class="chart"><svg id="bSvg" viewBox="0 0 560 300"></svg></div>
+        <div class="row"><button class="btn sm" id="bChk">✓ Диаграммыг шалгах</button><span class="feedback" id="bFb" style="margin:0"></span></div>
+      </div>
+      <div class="qlist" id="bQs"></div>
+    </div>
+  </div>
+</section>
+
+<!-- 6. Pictograph -->
+<section class="slide" data-name="Мэдээллийн ширээ: Дүрсэн диаграмм" data-min="4"
+  data-notes="Сурах бичиг х.131 №658: 6 сурагчийн 7 хоногт биеийн тамираар хичээллэсэн цаг. 1 дугуй = 4 цаг, тэгэхээр ¼ дугуй = 1 цаг.|Анун (6 цаг) жишээгээр өгөгдсөн: 1½ дугуй. Сурагч бүр «+ / −» товчоор дугуйн хэсгийг нэмж хасна.|Хариу: Марал 12 → 3 дугуй; Оргил 15 → 3¾; Анар 8 → 2; Энхлэн 5 → 1¼; Билгүүн 10 → 2½.|⭐⭐⭐: нийт 12+6+15+8+5+10 = 56 цаг = 14 дугуй.">
+  <div class="inner">
+    <div class="hd row" style="justify-content:space-between"><div><div class="kicker">Ширээ №3 · Сурах бичиг х.131, №658</div><h2>🏃 Хэн хэр их дасгал хийдэг вэ?</h2></div>
+      <div class="key"><svg width="34" height="34" viewBox="0 0 34 34"><circle cx="17" cy="17" r="14" fill="#161616"/></svg> = 4 цаг &nbsp; <svg width="34" height="34" viewBox="0 0 34 34"><circle cx="17" cy="17" r="14" fill="none" stroke="#161616" stroke-width="2"/><path d="M17 17 L17 3 A14 14 0 0 1 31 17 Z" fill="#161616"/></svg> = 1 цаг</div></div>
+    <div class="grid2 g64">
+      <div class="card"><div class="pic" id="pic"></div>
+        <div class="row" style="margin-top:8px"><button class="btn red" id="picChk">✓ Шалгах</button><span class="feedback" id="picFb" style="margin:0"></span></div></div>
+      <div class="qlist" id="picQs"></div>
+    </div>
+  </div>
+</section>
+
+<!-- 7. Livestock -->
+<section class="slide" data-name="Мэдээллийн ширээ: Мал сүрэг" data-min="4"
+  data-notes="Сурах бичиг х.132 №663: Нийт сүрэгт таван хошуу малын эзлэх хувь (Статистик эмхтгэл 2012). Ном дахь «43:1» нь 43.1 гэсэн үг.|Он дээр дарахад 100 нүдтэй дөрвөлжин тухайн оны хувиар будагдана: 100 нүд = бүх мал (100%).|Хариу: ⭐ 42.4; тэмээ. ⭐⭐ ямаа (43.9 > 43.1); 46.1 − 42.4 = 3.7. ⭐⭐⭐ 43.8 + 44.6 = 88.4; 5.9 + 6.7 + 0.8 = 13.4.|Багана бүрийн нийлбэр 100 болдгийг нэг оноор шалгуулж болно.">
+  <div class="inner">
+    <div class="hd"><div class="kicker">Ширээ №3 · Сурах бичиг х.132, №663</div><h2>🐑 Нийт сүрэгт мал бүр хэдэн хувь вэ?</h2></div>
+    <div class="grid2">
+      <div>
+        <table class="news ls" id="lsTab"></table>
+        <div class="row" style="margin-top:8px;align-items:flex-start;gap:16px">
+          <div class="hundred" id="hund"></div>
+          <div><div class="tw" style="font-size:18px">🔲 100 нүд = 100% · <b id="hYear">2011</b> он</div><div class="legend" id="leg"></div></div>
+        </div>
+      </div>
+      <div class="qlist" id="lsQs"></div>
+    </div>
+  </div>
+</section>
+
+<!-- 8. Fact check -->
+<section class="slide" data-name="Баримт шалгах ширээ" data-min="4"
+  data-notes="Сурвалжлагч бүр гарчиг хэвлэхээс өмнө ҮНЭН эсэхийг шалгана! Гарчиг бүрийг уншаад өмнөх хуудсуудын өгөгдлөөр шалгуулна.|Хариу: 1 Үнэн (35). 2 Үнэн (27 = 27). 3 Худал (дундаж 29). 4 Үнэн (43.9 > 43.1). 5 Худал (Энхлэн 5 цаг — хамгийн бага). 6 Худал (6.7%). 7 Үнэн (12 = 2 × 6). 8 ⭐⭐⭐ Үнэн (42.2 + 45.6 = 87.8).|Худал гарчгийг хэрхэн ЗАСАХ вэ гэж асуу: жишээ нь «дунджаар 29 хүүхэд».">
+  <div class="inner">
+    <div class="hd row" style="justify-content:space-between"><div><div class="kicker">Ширээ №4 · Баримт шалгагч</div><h2>🔍 Үнэн үү, худал уу?</h2></div><div class="counter" id="fcScore">Шалгасан 0/8 · Зөв 0</div></div>
+    <div class="facts" id="facts"></div>
+    <div class="factfb" id="factFb">Гарчиг бүрийг өгөгдөлтэй тулгаад тамга дарна уу.</div>
+  </div>
+</section>
+
+<!-- 9. Article -->
+<section class="slide" data-name="Нийтлэл бичих" data-min="5"
+  data-notes="Сурагчид хос хосоороо (эсвэл ангиараа) өгөгдлийн эх сурвалжаа сонгоод, гарчиг + 2 өгүүлбэр бичнэ. Баруун талд сонины нүүр шууд харагдана.|Шаардлага: 1) гарчиг; 2) хоёр өгүүлбэр; 3) дор хаяж нэг ТОО; 4) сурвалжлагчийн нэр.|⭐ «Загвар өгүүлбэр» товч нь хоосон зайтай өгүүлбэр гаргана — ___ хэсгийг тоогоор нөхүүлнэ.|⭐⭐⭐: харьцуулсан өгүүлбэр бичүүл (… нь …-аас 3.7 хувиар их). 2–3 хүүхдийн нийтлэлийг чангаар уншуулна.">
+  <div class="inner">
+    <div class="hd"><div class="kicker">Ширээ №5 · Хэвлэлд бэлтгэх</div><h2>✍️ Гарчиг ба нийтлэлээ бич</h2></div>
+    <div class="grid2" style="grid-template-columns:1fr 1.15fr">
+      <div class="card form">
+        <div class="row"><span class="tw" style="font-size:15px">Өгөгдөл:</span><span id="aSrc" class="row"></span></div>
+        <label>ГАРЧИГ</label><input type="text" id="aH" maxlength="60" placeholder="Жишээ: Манай анги зунд дуртай!">
+        <label>1-р ӨГҮҮЛБЭР</label><input type="text" id="aS1" maxlength="110">
+        <label>2-р ӨГҮҮЛБЭР</label><input type="text" id="aS2" maxlength="110">
+        <label>СУРВАЛЖЛАГЧ</label><input type="text" id="aBy" maxlength="40" placeholder="Нэр">
+        <div class="row" style="margin-top:8px"><button class="btn ghost sm" id="aTpl"><span class="lvl e">⭐</span> Загвар өгүүлбэр</button><button class="btn red sm" id="aPub">🖨 Хэвлэх</button></div>
+        <ul class="chk" id="aChk"></ul>
+      </div>
+      <div class="paper">
+        <div class="m">Ангийн Сонин</div>
+        <div class="dl"><span id="pDate"></span><span>5-р анги · Математик</span><span>Онцлох</span></div>
+        <div class="h" id="pH"></div>
+        <div class="body">
+          <div><div class="a" id="pA"></div><div class="byl" id="pBy"></div></div>
+          <div><svg id="pSvg" viewBox="0 0 320 210"></svg><div class="tw" style="font-size:13px;text-align:center" id="pCap"></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 10. Exit + homework -->
+<section class="slide" data-name="Эцсийн шалгалт ба гэрийн даалгавар" data-min="4"
+  data-notes="Гарах шалгалт (х.132 №660): а) 7.4 + 8 + 9.6 = 25 кг. ⭐⭐⭐ в) далайц 13 − 7.4 = 5.6 кг; нийт 60 кг, дундаж 60 : 6 = 10 кг.|⭐ Зураас тоолох — санамсаргүй тоо, «🔄» дарж шинэчилнэ.|Гэрийн даалгавар: х.132 №660 б (7.4 + 10.7 + 11.3 + 13 = 42.4), №662 (өндрөөр бодлого зохиох), №661 (хүснэгт нөхөх).|Төгсгөлд сурагчид өөрсдийгөө 1–3 одоор үнэлнэ.">
+  <div class="inner">
+    <div class="hd"><div class="kicker">Хэвлэлийн дараа</div><h2>🏁 Эцсийн шалгалт · Гэрийн даалгавар</h2></div>
+    <div class="grid2">
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <div class="card"><h3>1. Аль 3 хүүхдийн жинг нэмэхэд 25 кг гарах вэ? <span class="tw" style="font-size:14px">(№660 а)</span></h3>
+          <div class="chips" id="wChips"></div>
+          <div class="row" style="margin-top:4px"><span class="tw">Σ = <b id="wSum">0</b> кг</span><span class="feedback" id="wFb" style="margin:0"></span></div></div>
+        <div class="card"><h3><span class="lvl h">⭐⭐⭐</span> 2. Жингийн далайц ба дундаж <span class="tw" style="font-size:14px">(№660 в)</span></h3>
+          <div class="row">Далайц: <input class="num" id="eR"> кг &nbsp; Дундаж: <input class="num" id="eM"> кг <button class="btn sm" id="eChk">✓</button></div>
+          <div class="feedback" id="eFb"></div></div>
+        <div class="card"><h3><span class="lvl e">⭐</span> 3. Хэдэн санал вэ?</h3>
+          <div class="row"><div class="tally" id="xTal" style="flex:1;height:48px"></div>= <input class="num" id="xIn" inputmode="numeric"><button class="btn sm" id="xChk">✓</button><button class="btn ghost sm" id="xNew">🔄</button></div>
+          <div class="feedback" id="xFb"></div></div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <div class="card"><h3>📌 Гэрийн даалгавар (х.132)</h3>
+          <ul class="hw">
+            <li><b>№660 б</b> — Аль 4 хүүхдийн жинг нэмэхэд 42.4 кг гарах вэ?</li>
+            <li><b>№662</b> — 5 сурагчийн өндрөөр (132.7; 141.2; 118.5; 120.6; 119 см) бодлого зохиож бод.</li>
+            <li><b>№661</b> — Охид, хөвгүүдийн дүнгийн хүснэгтийг нөхөж, баганан диаграмм зур.</li>
+            <li><span class="lvl h">⭐⭐⭐</span> Гэрийнхнээсээ 1 асуулт асууж, зураасаар тоолоод мини сонин хийгээрэй!</li>
+          </ul></div>
+        <div class="card"><h3>Өнөөдөр би сайн сурвалжлагч байсан уу?</h3>
+          <div class="row" style="justify-content:space-between"><div class="stars3" id="stars3"><button>⭐</button><button>⭐</button><button>⭐</button></div>
+          <div class="tw" style="font-size:16px;text-align:right">Баярлалаа, сурвалжлагчид! 📰<br>— Редактор В. Гэрэлтуяа</div></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<nav class="nav">
+  <button class="btn" id="prevBtn">◀ Өмнөх</button>
+  <div class="dots" id="dots"></div>
+  <button class="btn" id="nextBtn">Дараах ▶</button>
+</nav>
+<div class="tnotes" id="tnotes"><h4>📝 Багшид зориулсан зөвлөмж</h4><ul id="tnList"></ul></div>
+<canvas id="confetti"></canvas>
+
+<script>
+/* ---------- Helpers ---------- */
+const store={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
+const $=id=>document.getElementById(id);
+const rnd=(a,b)=>a+Math.random()*(b-a);
+const rint=(a,b)=>Math.floor(rnd(a,b+1));
+const SVGNS='http://www.w3.org/2000/svg';
+function el(tag,attrs,parent,text){const e=document.createElementNS(SVGNS,tag);for(const k in attrs)e.setAttribute(k,attrs[k]);if(text!=null)e.textContent=text;if(parent)parent.appendChild(e);return e}
+const num=s=>{const v=parseFloat(String(s).replace(/\s/g,'').replace(',','.'));return isNaN(v)?null:v};
+const near=(a,b)=>a!==null&&Math.abs(a-b)<1e-6;
+const fmtD=v=>String(Math.round(v*10)/10);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function fb(id,ok,msg){const f=$(id);f.className='feedback '+(ok?'ok':'no');f.innerHTML=msg}
+function mark(inp,ok){inp.classList.remove('ok','no');inp.classList.add(ok?'ok':'no')}
+
+/* ---------- Desks tracker ---------- */
+const DK={};function desk(k){if(DK[k])return;DK[k]=true;$('dk'+k).classList.add('on');confetti(60)}
+
+/* ---------- Tally svg ---------- */
+function tallySvg(n,newIdx){let s='',x=8,k=0;const g=Math.floor(n/5),r=n%5;
+  const ln=(x1,y1,x2,y2,cls)=>{const isNew=k===newIdx;k++;return `<line class="tl ${cls}${isNew?' nw':''}" pathLength="1" x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}"/>`};
+  for(let i=0;i<g;i++){for(let j=0;j<4;j++)s+=ln(x+j*11,6,x+j*11,46,'');s+=ln(x-6,40,x+39,12,'x');x+=60}
+  for(let j=0;j<r;j++)s+=ln(x+j*11,6,x+j*11,46,'');
+  const w=Math.max(60,x+r*11+6);return `<svg viewBox="0 0 ${w} 52" style="width:${w}px">${s}</svg>`}
+
+/* ---------- Slides ---------- */
+const slides=[...document.querySelectorAll('.slide')];const dots=$('dots');let cur=0;
+slides.forEach((s,i)=>{const b=document.createElement('button');b.className='dot';b.textContent=String(i+1).padStart(2,'0');b.title=s.dataset.name;b.onclick=()=>go(i);dots.appendChild(b)});
+function go(i){
+  cur=Math.max(0,Math.min(slides.length-1,i));
+  slides.forEach((s,j)=>s.classList.toggle('active',j===cur));
+  [...dots.children].forEach((d,j)=>{d.classList.toggle('on',j===cur);d.classList.toggle('done',j<cur)});
+  const s=slides[cur];
+  $('stageName').textContent=s.dataset.name;$('sheetNo').textContent='Нүүр '+(cur+1)+'/'+slides.length;
+  $('tnList').innerHTML='<li>⏱ Зөвлөмж хугацаа: ≈'+s.dataset.min+' мин</li>'+s.dataset.notes.split('|').map(t=>'<li>'+t+'</li>').join('');
+  $('prevBtn').disabled=cur===0;$('nextBtn').textContent=cur===slides.length-1?'🏁 Төгсгөл':'Дараах ▶';
+  if(s.contains($('memo')))typeMemo();
+  if(s.contains($('fTab')))fBuild();
+  if(s.contains($('pSvg')))aRender();
+}
+$('prevBtn').onclick=()=>go(cur-1);$('nextBtn').onclick=()=>go(cur+1);
+document.addEventListener('keydown',e=>{
+  const t=e.target;if(t.isContentEditable||t.tagName==='INPUT'||t.tagName==='TEXTAREA')return;
+  if(e.key==='ArrowRight'||e.key==='PageDown')go(cur+1);
+  else if(e.key==='ArrowLeft'||e.key==='PageUp')go(cur-1);
+  else if(e.key==='f'||e.key==='F')toggleFS();
+  else if(e.key==='n'||e.key==='N')toggleNotes();
+});
+function toggleFS(){if(!document.fullscreenElement)document.documentElement.requestFullscreen?.();else document.exitFullscreen?.()}
+function toggleNotes(){$('tnotes').classList.toggle('show')}
+$('fsBtn').onclick=toggleFS;$('notesBtn').onclick=toggleNotes;
+
+/* ---------- Timer ---------- */
+let remain=40*60,running=false,tick=null;
+function drawT(){const a=Math.abs(remain),m=Math.floor(a/60),s=a%60;$('tval').textContent=(remain<0?'+':'')+m+':'+String(s).padStart(2,'0');$('timer').className='timer'+(remain<0?' over':remain<=300?' warn':'')}
+$('tPlay').onclick=()=>{running=!running;$('tPlay').textContent=running?'⏸':'▶';if(running)tick=setInterval(()=>{remain--;drawT()},1000);else clearInterval(tick)};
+$('timer').ondblclick=()=>{remain=40*60;drawT()};drawT();
+
+const MONTHS=['1-р сар','2-р сар','3-р сар','4-р сар','5-р сар','6-р сар','7-р сар','8-р сар','9-р сар','10-р сар','11-р сар','12-р сар'];
+const D=new Date(),DATESTR=D.getFullYear()+' оны '+MONTHS[D.getMonth()]+'ын '+D.getDate();
+$('todayStr').textContent=DATESTR;$('pDate').textContent=DATESTR;
+
+/* ================= ② Editor memo + question sorter ================= */
+const MEMO='Хүндэт сурвалжлагч нараа!\n\nДараагийн дугаарт ТООН БАРИМТТАЙ мэдээ хэрэгтэй байна. Таамаглах хориотой! Асуулт тавь, өгөгдөл цуглуул, хүснэгтэд оруул, тэгээд дүгнэлт хий.\n\nЭхлээд: аль асуултыг судалж болохыг шийд.\n\n— Ерөнхий редактор';
+let memoDone=false;
+function typeMemo(){if(memoDone)return;memoDone=true;const m=$('memo');let i=0;(function f(){m.innerHTML=esc(MEMO.slice(0,i)).replace(/\n/g,'<br>')+'<span class="caret"></span>';if(i<MEMO.length){i+=2;setTimeout(f,28)}})()}
+const QS=[
+  {t:'Манай ангийнхан аль улиралд хамгийн их дуртай вэ?',a:1,e:'Ангийнхнаас асууж, санал тоолж болно.'},
+  {t:'5-р ангийн нэг бүлэгт дунджаар хэдэн хүүхэд байдаг вэ?',a:1,e:'Бүлэг бүрийн хүүхдийг тоолоод дунджийг олно (х.130).'},
+  {t:'Өнөөдөр гариг хэд вэ?',a:0,e:'Ганцхан хариулттай — өгөгдөл цуглуулах шаардлагагүй.'},
+  {t:'Монголын сүрэгт аль мал хамгийн олон бэ?',a:1,e:'Статистикийн хүснэгтээс харна (х.132).'},
+  {t:'Миний зурсан зураг гоё юу?',a:0,e:'Бодол санаа — тоогоор хэмжихэд хэцүү.'},
+  {t:'Хэн 7 хоногт хамгийн их дасгал хийдэг вэ?',a:1,e:'Цагийг бүртгээд харьцуулна (х.131).'}];
+let qsOk=0;
+QS.forEach((q,i)=>{const d=document.createElement('div');d.className='qcard';d.innerHTML=`<span class="t">${i+1}. ${q.t}</span><button class="btn sm" data-v="1">📊 Тийм</button><button class="btn ghost sm" data-v="0">✋ Үгүй</button>`;
+  d.querySelectorAll('button').forEach(b=>b.onclick=()=>{if(d.dataset.done)return;const ok=+b.dataset.v===q.a;let mk=d.querySelector('.mk');if(!mk){mk=document.createElement('span');mk.className='mk';d.appendChild(mk)}
+    mk.textContent=ok?'ЗӨВ':'ДАХИН';mk.style.color=mk.style.borderColor=ok?'var(--grn)':'var(--red)';
+    $('qsFb').className='feedback '+(ok?'ok':'no');$('qsFb').textContent=(ok?'✓ ':'✗ ')+q.e;
+    if(ok){d.dataset.done=1;qsOk++;if(qsOk===QS.length){$('qsFb').textContent='🎉 Бүгд зөв! Одоо 1-р асуултаар санал асуулга явуулъя.';confetti(60)}}});
+  $('qs').appendChild(d)});
+
+/* ================= ③ Live survey ================= */
+const TOPICS={
+  season:{n:'🌦 Улирал',q:'Чи аль улиралд хамгийн их дуртай вэ?',o:[['🌸','Хавар'],['☀️','Зун'],['🍂','Намар'],['❄️','Өвөл']]},
+  sport:{n:'⚽ Спорт',q:'Чи ямар спортод хамгийн их дуртай вэ?',o:[['⚽','Хөл бөмбөг'],['🏀','Сагсан бөмбөг'],['🤼','Бөх'],['♟️','Шатар']]},
+  animal:{n:'🐎 Мал',q:'Таван хошуу малаас аль нь чамд хамгийн их таалагддаг вэ?',o:[['🐎','Морь'],['🐄','Үхэр'],['🐫','Тэмээ'],['🐑','Хонь'],['🐐','Ямаа']]}};
+let S={topic:'season',votes:{season:[0,0,0,0],sport:[0,0,0,0],animal:[0,0,0,0,0]},hist:[]};
+try{const sv=JSON.parse(store.get('news_survey')||'null');if(sv&&sv.votes&&TOPICS[sv.topic])S=Object.assign(S,sv,{hist:[]})}catch(e){}
+const sSave=()=>store.set('news_survey',JSON.stringify({topic:S.topic,votes:S.votes}));
+function sRender(newRow){const T=TOPICS[S.topic],V=S.votes[S.topic];$('sQ').textContent='«'+T.q+'»';
+  $('topicBtns').innerHTML='';for(const k in TOPICS){const b=document.createElement('button');b.className='btn ghost sm'+(k===S.topic?' on':'');b.textContent=TOPICS[k].n;b.onclick=()=>{S.topic=k;S.hist=[];sSave();sRender()};$('topicBtns').appendChild(b)}
+  $('voteRows').innerHTML=T.o.map((o,i)=>`<div class="vote"><button class="vbtn" data-i="${i}"><span>${o[0]}</span>${o[1]}</button><div class="tally">${tallySvg(V[i],i===newRow?V[i]-1:-1)}</div></div>`).join('');
+  $('voteRows').querySelectorAll('.vbtn').forEach(b=>b.onclick=()=>{const i=+b.dataset.i;S.votes[S.topic][i]++;S.hist.push(i);sSave();sRender(i);if(S.votes[S.topic].reduce((a,b)=>a+b,0)>=5)desk(1)});
+  $('sTot').textContent=V.reduce((a,b)=>a+b,0)}
+$('sUndo').onclick=()=>{const i=S.hist.pop();if(i==null)return;S.votes[S.topic][i]=Math.max(0,S.votes[S.topic][i]-1);sSave();sRender()};
+$('sReset').onclick=()=>{if(!confirm('Энэ сэдвийн бүх саналыг арилгах уу?'))return;S.votes[S.topic]=S.votes[S.topic].map(()=>0);S.hist=[];sSave();sRender()};
+sRender();
+
+/* ================= ④ Frequency table ================= */
+function fBuild(){const T=TOPICS[S.topic],V=S.votes[S.topic],tot=V.reduce((a,b)=>a+b,0);
+  $('fTab').innerHTML='<tr><th>'+T.n.slice(2)+'</th><th>Зураас</th><th>Давтамж</th></tr>'+T.o.map((o,i)=>`<tr><td>${o[0]} ${o[1]}</td><td class="tsm">${tallySvg(V[i],-1)}</td><td><input class="num" data-i="${i}" inputmode="numeric"></td></tr>`).join('')+
+    '<tr class="tot"><td>Нийт</td><td class="tw" style="font-size:15px">бүх зураас</td><td><input class="num" id="fTot" inputmode="numeric"></td></tr>';
+  $('fFb').className='feedback';$('fFb').textContent=tot?'':'ℹ️ Санал алга байна. Өмнөх хуудсанд санал авах эсвэл «Жишээ өгөгдөл» дарна уу.';
+  $('fTop').innerHTML='';$('fTopFb').textContent='';
+  T.o.forEach((o,i)=>{const b=document.createElement('button');b.className='btn ghost sm';b.textContent=o[0]+' '+o[1];b.onclick=()=>{const mx=Math.max(...V);if(!tot){fb('fTopFb',false,'Эхлээд өгөгдөл хэрэгтэй.');return}
+    const tops=V.map((v,j)=>v===mx?j:-1).filter(j=>j>=0);if(V[i]===mx){fb('fTopFb',true,tops.length>1?`✓ Зөв! Гэхдээ ${tops.map(j=>T.o[j][1]).join(', ')} тэнцүү (${mx}) байна.`:`✓ Тийм! ${o[1]} — ${mx} санал. Энэ бол гол мэдээ! 📰`)}else fb('fTopFb',false,`✗ ${o[1]} ${V[i]} санал авсан. Хүснэгтээ харьцуул.`)};$('fTop').appendChild(b)})}
+$('fChk').onclick=()=>{const V=S.votes[S.topic],tot=V.reduce((a,b)=>a+b,0);let ok=true;
+  $('fTab').querySelectorAll('input[data-i]').forEach(inp=>{const g=num(inp.value)===V[+inp.dataset.i];mark(inp,g);ok=ok&&g});
+  const tg=num($('fTot').value)===tot;mark($('fTot'),tg);ok=ok&&tg;
+  if(ok){fb('fFb',true,`🎉 Хүснэгт зөв! ${V.join(' + ')} = ${tot}.`);desk(2)}else fb('fFb',false,'🤔 Улаан нүдийг дахин тоол: 5-аар багцалсан хэсгийг 5, 10, 15 гэж тоолоорой.')};
+$('fSample').onclick=()=>{const n=TOPICS[S.topic].o.length;S.votes[S.topic]=n===4?[6,11,5,8]:[4,6,3,9,8];S.hist=[];sSave();sRender();fBuild()};
+let pN=0;function pNew(){pN=rint(3,24);$('pTal').innerHTML=tallySvg(pN,-1);$('pIn').value='';$('pIn').className='num';$('pFb').textContent=''}
+$('pNew').onclick=pNew;$('pChk').onclick=()=>{const ok=num($('pIn').value)===pN;mark($('pIn'),ok);fb('pFb',ok,ok?'✓ Зөв! '+Math.floor(pN/5)+' × 5 + '+(pN%5)+' = '+pN:'✗ 5-аар багцлаад тоол: 5, 10, 15…')};pNew();
+
+/* ================= ⑤ Class sizes bar chart ================= */
+const BG=['5а','5б','5в','5г','5д','5е'],BV=[24,27,35,27,29,32];let bCur=[10,10,10,10,10,10];
+const BX=i=>70+i*80,BY=v=>270-v*6.5;
+function bDraw(){const s=$('bSvg');s.innerHTML='';
+  for(let v=0;v<=40;v+=5){el('line',{x1:50,y1:BY(v),x2:550,y2:BY(v),stroke:v?'#d8d0bd':'#161616','stroke-width':v?1:2},s);el('text',{x:42,y:BY(v)+5,'text-anchor':'end','font-size':14,'font-family':'PT Mono'},s,v)}
+  bCur.forEach((v,i)=>{const ok=v===BV[i];el('rect',{class:'ch',x:BX(i),y:BY(v),width:50,height:v*6.5,fill:ok?'#161616':'#8a8273',stroke:ok?'#c8102e':'none','stroke-width':3,'data-i':i},s);
+    el('rect',{class:'ch',x:BX(i)+5,y:BY(v)-7,width:40,height:8,fill:'#c8102e','data-i':i},s);
+    el('text',{x:BX(i)+25,y:BY(v)-12,'text-anchor':'middle','font-size':17,'font-weight':700,'font-family':'PT Mono'},s,v);
+    el('text',{x:BX(i)+25,y:292,'text-anchor':'middle','font-size':17,'font-weight':700},s,BG[i])})}
+(()=>{const s=$('bSvg');let drag=-1;const val=e=>{const p=s.createSVGPoint();p.x=e.clientX;p.y=e.clientY;const q=p.matrixTransform(s.getScreenCTM().inverse());return q};
+  s.addEventListener('pointerdown',e=>{const q=val(e);const i=Math.floor((q.x-60)/80);if(i<0||i>5||q.x<BX(i)-8||q.x>BX(i)+58)return;drag=i;s.setPointerCapture(e.pointerId);bCur[i]=Math.max(0,Math.min(40,Math.round((270-q.y)/6.5)));bDraw()});
+  s.addEventListener('pointermove',e=>{if(drag<0)return;const q=val(e);bCur[drag]=Math.max(0,Math.min(40,Math.round((270-q.y)/6.5)));bDraw()});
+  s.addEventListener('pointerup',()=>{drag=-1})})();
+$('bChk').onclick=()=>{const bad=bCur.map((v,i)=>v===BV[i]?null:BG[i]).filter(Boolean);if(!bad.length){fb('bFb',true,'🎉 Диаграмм хүснэгттэй яг таарч байна!');confetti(40)}else fb('bFb',false,'✗ Шалга: '+bad.join(', '))};
+bDraw();
+
+/* generic question builder */
+function buildQs(box,list,onAll){let done=0;list.forEach(q=>{const d=document.createElement('div');d.className='qi';
+  d.innerHTML=`<div><span class="lvl ${q.l===1?'e':q.l===3?'h':''}">${'⭐'.repeat(q.l)}</span>${q.q}</div><div class="row"></div><div class="feedback" style="font-size:16px;min-height:0;margin:0"></div>`;
+  const r=d.querySelector('.row'),f=d.querySelector('.feedback');
+  const win=()=>{if(d.classList.contains('done'))return;d.classList.add('done');f.className='feedback ok';f.textContent='✓ '+q.e;done++;if(done===list.length&&onAll)onAll()};
+  if(q.c){q.c.forEach(c=>{const b=document.createElement('button');b.className='btn ghost sm';b.textContent=c;b.onclick=()=>{if(c===q.a)win();else{f.className='feedback no';f.textContent='✗ Хүснэгтээ дахин хар.'}};r.appendChild(b)})}
+  else{r.innerHTML=`<input class="num" inputmode="decimal"> ${q.u||''} <button class="btn sm">✓</button>`;const inp=r.querySelector('input');r.querySelector('button').onclick=()=>{const ok=near(num(inp.value),q.a);mark(inp,ok);if(ok)win();else{f.className='feedback no';f.textContent='✗ '+(q.h||'Дахин бодоорой.')}}}
+  box.appendChild(d)})}
+buildQs($('bQs'),[
+  {l:1,q:'Аль бүлэг хамгийн олон сурагчтай вэ?',c:BG,a:'5в',e:'5в — 35 хүүхэд.'},
+  {l:1,q:'Аль бүлэг хамгийн цөөн сурагчтай вэ?',c:BG,a:'5а',e:'5а — 24 хүүхэд.'},
+  {l:2,q:'Хамгийн олон, хамгийн цөөн хоёрын зөрөө (далайц)?',a:11,u:'хүүхэд',h:'35 − 24 = ?',e:'35 − 24 = 11.'},
+  {l:2,q:'6 бүлэгт нийт хэдэн сурагч байна вэ?',a:174,u:'хүүхэд',h:'Бүгдийг нэмээрэй.',e:'24+27+35+27+29+32 = 174.'},
+  {l:3,q:'Нэг бүлэгт дунджаар хэдэн сурагч вэ?',a:29,u:'хүүхэд',h:'Нийт тоог бүлгийн тоо (6)-д хуваа.',e:'174 : 6 = 29.'}],()=>desk(3));
+
+/* ================= ⑥ Pictograph ================= */
+const PN=['Марал','Анун','Оргил','Анар','Энхлэн','Билгүүн'],PH=[12,6,15,8,5,10];let PQ=[0,6,0,0,0,0];
+function pie(f,cx,cy,r){if(f>=1)return `<circle cx="${cx}" cy="${cy}" r="${r}" fill="#161616"/>`;if(f<=0)return '';const a=f*2*Math.PI,x=cx+r*Math.sin(a),y=cy-r*Math.cos(a);return `<path d="M${cx} ${cy} L${cx} ${cy-r} A${r} ${r} 0 ${f>.5?1:0} 1 ${x.toFixed(2)} ${y.toFixed(2)} Z" fill="#161616"/>`}
+function picDraw(){$('pic').innerHTML='<div class="tw" style="font-size:14px">НЭР</div><div class="tw" style="font-size:14px">ЦАГ</div><div class="tw" style="font-size:14px">ЗАРЦУУЛСАН ЦАГ</div><div></div>'+PN.map((n,i)=>{let c='';for(let k=0;k<4;k++){const cx=22+k*44;c+=`<circle class="o" cx="${cx}" cy="22" r="18" fill="none" stroke="${k*4<PQ[i]?'#161616':'#d0c8b5'}" stroke-width="2" stroke-dasharray="${k*4<PQ[i]?'0':'4 3'}"/>`+pie((PQ[i]-k*4)/4,cx,22,18)}
+  return `<div class="nm">${n}</div><div class="hr">${PH[i]} ц</div><div><svg viewBox="0 0 178 44">${c}</svg></div><div class="pm">${i===1?'<span class="tw" style="font-size:14px">жишээ</span>':`<button data-i="${i}" data-d="-1">−</button> <button data-i="${i}" data-d="1">+</button>`}</div>`}).join('');
+  $('pic').querySelectorAll('button').forEach(b=>b.onclick=()=>{const i=+b.dataset.i;PQ[i]=Math.max(0,Math.min(16,PQ[i]+ +b.dataset.d));picDraw()})}
+$('picChk').onclick=()=>{const bad=PN.filter((n,i)=>PQ[i]!==PH[i]);if(!bad.length){fb('picFb',true,'🎉 Дүрсэн диаграмм бэлэн!');confetti(50)}else fb('picFb',false,'✗ Шалга: '+bad.join(', ')+' (¼ дугуй = 1 цаг)')};
+picDraw();
+buildQs($('picQs'),[
+  {l:1,q:'Хэн хамгийн их хичээллэдэг вэ?',c:PN,a:'Оргил',e:'Оргил — 15 цаг.'},
+  {l:1,q:'Анар хэдэн бүтэн дугуй авах вэ?',a:2,u:'дугуй',h:'8 : 4 = ?',e:'8 : 4 = 2 дугуй.'},
+  {l:2,q:'Марал Энхлэнгээс хэдэн цагаар илүү хичээллэдэг вэ?',a:7,u:'цаг',h:'12 − 5 = ?',e:'12 − 5 = 7 цаг.'},
+  {l:3,q:'6 хүүхэд нийт хэдэн цаг хичээллэсэн бэ?',a:56,u:'цаг',h:'6 тоог бүгдийг нэм.',e:'12+6+15+8+5+10 = 56 цаг = 14 дугуй.'}]);
+
+/* ================= ⑦ Livestock ================= */
+const LY=[2007,2008,2009,2010,2011];
+const LA=[{n:'Адуу',c:'#7a5a3a',v:[5.6,5.1,5.1,5.9,5.8]},{n:'Үхэр',c:'#c8102e',v:[6.0,5.8,5.9,6.7,6.4]},{n:'Тэмээ',c:'#e0b23c',v:[0.6,0.6,0.6,0.8,0.8]},{n:'Хонь',c:'#bdb6a6',v:[42.2,42.4,43.8,44.2,43.1]},{n:'Ямаа',c:'#161616',v:[45.6,46.1,44.6,42.4,43.9]}];
+let lsY=4;
+function lsDraw(){const t=$('lsTab');t.innerHTML='<tr><th>Он</th>'+LY.map((y,j)=>`<th data-y="${j}" class="${j===lsY?'hl':''}">${y}</th>`).join('')+'</tr><tr><td>Бүгд</td>'+LY.map((y,j)=>`<td class="${j===lsY?'hl':''}">100.0</td>`).join('')+'</tr>'+
+  LA.map(a=>`<tr><td><span style="display:inline-block;width:12px;height:12px;background:${a.c};border:1px solid #000;margin-right:5px"></span>${a.n}</td>`+a.v.map((v,j)=>`<td data-y="${j}" class="${j===lsY?'hl':''}">${v.toFixed(1)}</td>`).join('')+'</tr>').join('');
+  t.querySelectorAll('[data-y]').forEach(c=>c.onclick=()=>{lsY=+c.dataset.y;lsDraw()});
+  // largest remainder to 100 cells
+  const raw=LA.map(a=>a.v[lsY]),fl=raw.map(Math.floor);let left=100-fl.reduce((a,b)=>a+b,0);const ord=raw.map((v,i)=>[v-Math.floor(v),i]).sort((a,b)=>b[0]-a[0]);for(let k=0;k<left;k++)fl[ord[k][1]]++;
+  let cells='';LA.forEach((a,i)=>{for(let k=0;k<fl[i];k++)cells+=`<i style="background:${a.c}"></i>`});$('hund').innerHTML=cells;$('hYear').textContent=LY[lsY];
+  $('leg').innerHTML=LA.map((a,i)=>`<div><span style="background:${a.c}"></span>${a.n} — ${raw[i].toFixed(1)}% ≈ ${fl[i]} нүд</div>`).join('')}
+lsDraw();
+buildQs($('lsQs'),[
+  {l:1,q:'2008 онд хонь сүргийн хэдэн хувийг эзэлсэн бэ?',a:42.4,u:'%',h:'2008 оны баганаас «Хонь» мөрийг ол.',e:'42.4%.'},
+  {l:1,q:'Аль мал хамгийн бага хувьтай вэ?',c:['Адуу','Үхэр','Тэмээ','Хонь','Ямаа'],a:'Тэмээ',e:'Тэмээ — 1%-иас ч бага.'},
+  {l:2,q:'2011 онд аль нь олон байсан бэ?',c:['Хонь','Ямаа'],a:'Ямаа',e:'Ямаа 43.9% > Хонь 43.1%.'},
+  {l:2,q:'2008 онд ямаа хониноос хэдэн хувиар их байсан бэ?',a:3.7,u:'%',h:'46.1 − 42.4 = ?',e:'46.1 − 42.4 = 3.7%.'},
+  {l:3,q:'2009 онд хонь, ямаа хамтдаа хэдэн хувь вэ?',a:88.4,u:'%',h:'43.8 + 44.6 = ?',e:'43.8 + 44.6 = 88.4%.'},
+  {l:3,q:'2010 онд адуу, үхэр, тэмээ хамтдаа хэдэн хувь вэ?',a:13.4,u:'%',h:'5.9 + 6.7 + 0.8 = ?',e:'5.9 + 6.7 + 0.8 = 13.4%.'}]);
+
+/* ================= ⑧ Fact check ================= */
+const FC=[
+  {h:'5в бүлэг хамгийн олон сурагчтай — 35 хүүхэд!',s:'Бүлгүүд, х.130',a:true,e:'5в = 35 бол хамгийн их тоо.'},
+  {h:'5б, 5г бүлэг адил тооны сурагчтай',s:'Бүлгүүд, х.130',a:true,e:'5б = 27, 5г = 27.'},
+  {h:'Нэг бүлэгт дунджаар 30 хүүхэд суралцдаг',s:'Бүлгүүд, х.130',a:false,e:'174 : 6 = 29 — дундаж 29 байна.'},
+  {h:'2011 онд ямаа хониноос олон байв',s:'Мал сүрэг, х.132',a:true,e:'43.9% > 43.1%.'},
+  {h:'Энхлэн 7 хоногт хамгийн их дасгал хийдэг',s:'Дасгал, х.131',a:false,e:'Энхлэн 5 цаг — хамгийн БАГА. Хамгийн их нь Оргил (15).'},
+  {h:'2010 онд үхэр сүргийн 7%-иас илүүг эзэлсэн',s:'Мал сүрэг, х.132',a:false,e:'2010 онд үхэр 6.7% — 7-оос бага.'},
+  {h:'Марал Анунаас 2 дахин их хичээллэдэг',s:'Дасгал, х.131',a:true,e:'12 = 2 × 6.'},
+  {h:'⭐⭐⭐ 2007 онд хонь, ямаа хамтдаа сүргийн 87.8%',s:'Мал сүрэг, х.132',a:true,e:'42.2 + 45.6 = 87.8.'}];
+let fcN=0,fcOk=0;
+FC.forEach((f,i)=>{const d=document.createElement('div');d.className='fact';d.innerHTML=`<div class="hl">${i+1}. ${f.h}</div><div class="row" style="justify-content:space-between"><span class="src">Эх сурвалж: ${f.s}</span><span class="row"><button class="btn sm" data-v="1">ҮНЭН</button><button class="btn ghost sm" data-v="0">ХУДАЛ</button></span></div><div class="st"></div>`;
+  d.querySelectorAll('button').forEach(b=>b.onclick=()=>{if(d.dataset.done)return;d.dataset.done=1;const said=b.dataset.v==='1',ok=said===f.a;fcN++;if(ok)fcOk++;
+    const st=d.querySelector('.st');st.textContent=f.a?'ҮНЭН':'ХУДАЛ';st.style.color=st.style.borderColor=f.a?'var(--grn)':'var(--red)';st.classList.add('show');if(!ok)d.classList.add('wrong');
+    $('factFb').innerHTML=(ok?'✓ <b>Зөв шалгалаа!</b> ':'✗ <b>Анхаар!</b> ')+f.e;$('fcScore').textContent=`Шалгасан ${fcN}/8 · Зөв ${fcOk}`;if(fcN===FC.length){desk(4);if(fcOk>=6)confetti(80)}});
+  $('facts').appendChild(d)});
+
+/* ================= ⑨ Article ================= */
+let aSrc='survey';
+const SRC={survey:'🗳️ Манай санал асуулга',groups:'🏫 Бүлгүүд',herd:'🐑 Мал сүрэг 2011'};
+function srcData(){if(aSrc==='survey'){const T=TOPICS[S.topic];return{l:T.o.map(o=>o[1]),v:S.votes[S.topic].slice(),cap:T.q}}
+  if(aSrc==='groups')return{l:BG,v:BV,cap:'5-р ангийн бүлгүүдийн сурагчийн тоо'};return{l:LA.map(a=>a.n),v:LA.map(a=>a.v[4]),cap:'Нийт сүрэгт эзлэх хувь, 2011 он'}}
+$('aSrc').innerHTML=Object.keys(SRC).map(k=>`<button class="btn ghost sm${k===aSrc?' on':''}" data-s="${k}">${SRC[k]}</button>`).join('');
+$('aSrc').querySelectorAll('button').forEach(b=>b.onclick=()=>{aSrc=b.dataset.s;$('aSrc').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));aRender()});
+function aRender(){const h=$('aH').value.trim(),s1=$('aS1').value.trim(),s2=$('aS2').value.trim(),by=$('aBy').value.trim();
+  $('pH').className='h'+(h?'':' ph');$('pH').textContent=h||'Энд таны гарчиг гарна…';
+  const body=[s1,s2].filter(Boolean).map(x=>/[.!?]$/.test(x)?x:x+'.').join(' ');$('pA').innerHTML=body?esc(body):'<span class="ph">Таны 2 өгүүлбэр энд хэвлэгдэнэ. Тоо баримт оруулахаа бүү март!</span>';
+  $('pBy').textContent='✎ Сурвалжлагч: '+(by||'______');
+  const d=srcData(),s=$('pSvg');s.innerHTML='';const mx=Math.max(1,...d.v),n=d.v.length,bw=Math.min(46,250/n-10);
+  el('line',{x1:30,y1:180,x2:315,y2:180,stroke:'#161616','stroke-width':2},s);
+  d.v.forEach((v,i)=>{const x=40+i*(270/n),hh=v/mx*150;el('rect',{x,y:180-hh,width:bw,height:hh,fill:v===mx?'#c8102e':'#161616'},s);el('text',{x:x+bw/2,y:175-hh,'text-anchor':'middle','font-size':13,'font-family':'PT Mono'},s,String(v));el('text',{x:x+bw/2,y:197,'text-anchor':'middle','font-size':n>5?10:12},s,d.l[i].length>8?d.l[i].slice(0,7)+'.':d.l[i])});
+  $('pCap').textContent='Зураг: '+d.cap;
+  const C=[[h.length>=4,'Гарчигтай'],[s1.length>=8&&s2.length>=8,'2 өгүүлбэртэй'],[/\d/.test(s1+s2),'Тоо баримт орсон'],[by.length>=2,'Сурвалжлагчийн нэртэй']];
+  $('aChk').innerHTML=C.map(c=>`<li><b>${c[0]?'✓':'○'}</b>${c[1]}</li>`).join('');return C.every(c=>c[0])}
+['aH','aS1','aS2','aBy'].forEach(id=>$(id).addEventListener('input',aRender));
+$('aTpl').onclick=()=>{const T={survey:['Манай ангийнхны дуртай нь — ___!','Санал асуулгад ___ хүүхэд оролцов','Хамгийн олон буюу ___ хүүхэд ___-г сонгосон'],
+  groups:['Хамгийн том бүлэг — ___!','5-р ангийн 6 бүлэгт нийт ___ сурагч суралцдаг','Нэг бүлэгт дунджаар ___ хүүхэд ногддог'],
+  herd:['Монголын сүрэгт ___ тэргүүлэв!','2011 онд ямаа нийт сүргийн ___ хувийг эзэлжээ','Хонь ___ хувь байсан нь ямаанаас бага юм']}[aSrc];
+  $('aH').value=T[0];$('aS1').value=T[1];$('aS2').value=T[2];aRender();$('aH').focus()};
+$('aPub').onclick=()=>{if(/___/.test($('aH').value+$('aS1').value+$('aS2').value)){alert('___ хэсгийг тоо/үгээр нөхөөрэй!');return}if(aRender()){desk(5);confetti(120)}else alert('Шалгах хуудсыг бүрэн хангаарай ✓')};
+aRender();
+
+/* ================= ⑩ Exit ================= */
+const W=[7.4,8,9.6,10.7,11.3,13];const wSel=new Set();
+W.forEach((w,i)=>{const b=document.createElement('button');b.className='chip';b.textContent=w+' кг';b.onclick=()=>{wSel.has(i)?wSel.delete(i):wSel.add(i);b.classList.toggle('on');
+  const sum=[...wSel].reduce((a,j)=>a+W[j],0);$('wSum').textContent=fmtD(sum);
+  if(wSel.size===3&&near(Math.round(sum*10)/10,25)){fb('wFb',true,'🎉 7.4 + 8 + 9.6 = 25 кг!');confetti(50)}else if(wSel.size>=3)fb('wFb',false,'✗ 3 жингийн нийлбэр 25 биш байна.');else $('wFb').textContent=''};$('wChips').appendChild(b)});
+$('eChk').onclick=()=>{const r=near(num($('eR').value),5.6),m=near(num($('eM').value),10);mark($('eR'),r);mark($('eM'),m);
+  fb('eFb',r&&m,r&&m?'🎉 Далайц 13 − 7.4 = 5.6 кг; дундаж 60 : 6 = 10 кг.':(!r?'Далайц = хамгийн их − хамгийн бага. ':'')+(!m?'Дундаж = нийлбэр : 6.':''))};
+let xN=0;function xNew(){xN=rint(8,27);$('xTal').innerHTML=tallySvg(xN,-1);$('xIn').value='';$('xIn').className='num';$('xFb').textContent=''}
+$('xNew').onclick=xNew;$('xChk').onclick=()=>{const ok=num($('xIn').value)===xN;mark($('xIn'),ok);fb('xFb',ok,ok?'✓ Зөв! '+xN+' санал.':'✗ 5-аар тоолоод үлдсэнийг нэм.')};xNew();
+(()=>{const b=[...document.querySelectorAll('#stars3 button')];const set=n=>{b.forEach((x,i)=>x.classList.toggle('on',i<n));store.set('news_stars',n)};b.forEach((x,i)=>x.onclick=()=>{set(i+1);if(i===2)confetti(60)});set(+(store.get('news_stars')||0))})();
+
+/* ================= Confetti (newspaper scraps) ================= */
+const cf=$('confetti'),cfx=cf.getContext('2d');let parts=[],cRun=false;
+function confetti(n){cf.width=innerWidth;cf.height=innerHeight;const cols=['#f3efe4','#fbf9f3','#e8e2d1','#c8102e','#161616'];
+  for(let i=0;i<n;i++)parts.push({x:innerWidth/2+rnd(-160,160),y:innerHeight*.45,vx:rnd(-7,7),vy:-rnd(4,18),w:rnd(14,26),h:rnd(9,16),c:cols[i%5],r:rnd(0,6),vr:rnd(-.2,.2),life:130});
+  if(!cRun){cRun=true;requestAnimationFrame(cStep)}}
+function cStep(){cfx.clearRect(0,0,cf.width,cf.height);parts.forEach(p=>{p.vy+=.4;p.vx*=.99;p.x+=p.vx;p.y+=p.vy;p.r+=p.vr;p.life--;cfx.save();cfx.translate(p.x,p.y);cfx.rotate(p.r);
+  cfx.fillStyle=p.c;cfx.fillRect(-p.w/2,-p.h/2,p.w,p.h);cfx.strokeStyle='rgba(0,0,0,.5)';cfx.lineWidth=1;cfx.strokeRect(-p.w/2,-p.h/2,p.w,p.h);
+  if(p.c!=='#161616'&&p.c!=='#c8102e'){cfx.fillStyle='rgba(0,0,0,.55)';for(let y=-p.h/2+3;y<p.h/2-1;y+=3)cfx.fillRect(-p.w/2+2,y,p.w-4,1)}cfx.restore()});
+  parts=parts.filter(p=>p.life>0&&p.y<cf.height+30);if(parts.length)requestAnimationFrame(cStep);else{cRun=false;cfx.clearRect(0,0,cf.width,cf.height)}}
+
+go(0);
+</script>
+</body>
+</html>
